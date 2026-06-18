@@ -1,0 +1,6 @@
+{
+  "name": "AgriSense",
+  "description": "Satellite-based crop health monitoring system and real-time AI agricultural advisory dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
