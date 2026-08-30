@@ -22,50 +22,55 @@ async function startServer() {
     }
   });
 
-  // API Route for Gemini Crop Advisory
-  app.post("/api/gemini/advisory", async (req, res) => {
+  // API Route for Gemini Lunar Image Registration Analysis
+  app.post("/api/gemini/registration-analysis", async (req, res) => {
     try {
-      const { crop, stageText, district, waterNeeds, ndvi, ndwi, ndre, ndviStatus, ndwiStatus, ndreStatus } = req.body;
+      const {
+        presetTitle,
+        sensor,
+        referenceSource,
+        resolutionSource,
+        resolutionRef,
+        sunElevationSource,
+        sunElevationRef,
+        sunAzimuthSource,
+        sunAzimuthRef,
+        metrics
+      } = req.body;
 
-      if (!crop || !stageText || !district) {
-        return res.status(400).json({ error: "Missing required parameters." });
+      if (!sensor || !referenceSource || !metrics) {
+        return res.status(400).json({ error: "Missing required registration parameters." });
       }
 
-      const prompt = `You are an expert agricultural scientist and remote sensing specialist for Eastern India (particularly West Bengal and nearby regions).
+      const prompt = `You are an expert planetary scientist and remote sensing image registration engineer working at ISRO (Indian Space Research Organisation) for the Chandrayaan-2 mission.
 
-A farmer needs an irrigation and crop advisory based on satellite spectral data.
+Analyze the image registration performance between Chandrayaan-2 acquired optical imagery and lunar reference basemaps.
 
-CROP DETAILS:
-- Crop: ${crop}
-- Growth Stage: ${stageText}
-- District: ${district}, Eastern India
-- Crop Water Needs: ${waterNeeds}
+INPUT PARAMETERS:
+- Preset Target: ${presetTitle}
+- Source (Moving) Sensor: Chandrayaan-2 ${sensor} (${resolutionSource} m/px)
+- Reference (Fixed) Source: ${referenceSource} (${resolutionRef} m/px)
+- Sun Elevation Angle (Source ↔ Ref): ${sunElevationSource}° ↔ ${sunElevationRef}°
+- Sun Azimuth Angle (Source ↔ Ref): ${sunAzimuthSource}° ↔ ${sunAzimuthRef}°
 
-SATELLITE SPECTRAL INDICES (from Sentinel-2 / MODIS data):
-- NDVI (Vegetation Health): ${ndvi} → Status: ${ndviStatus}
-- NDWI (Water Content): ${ndwi} → Status: ${ndwiStatus}
-- NDRE (Chlorophyll/Red Edge): ${ndre} → Status: ${ndreStatus}
+COMPUTED ALIGNMENT METRICS:
+- RMSE (Root Mean Square Error): ${metrics.rmse} pixels (Sub-pixel benchmark: < 1.0 px)
+- Inlier Match Count: ${metrics.inlierCount} / ${metrics.totalCount} matches
+- Inlier Ratio: ${(metrics.inlierRatio * 100).toFixed(1)}%
+- Mutual Information (MI): ${metrics.mutualInformation}
+- SSIM (Structural Similarity): ${metrics.ssim}
+- Spatial Uniformity Score: ${(metrics.distributionUniformity * 100).toFixed(1)}%
+- Max Sub-Pixel Residual: ${metrics.maxSubPixelResidual} px
 
-NDVI Scale: <0.2 = bare/stressed, 0.2–0.4 = moderate, >0.4 = healthy
-NDWI Scale: <-0.1 = dry stress, -0.1–0.1 = moderate, >0.1 = adequate moisture
-NDRE Scale: <0.1 = chlorophyll deficiency, 0.1–0.3 = moderate, >0.3 = healthy
-
-Respond in the exact JSON format specified below. Return ONLY pure JSON. Do NOT include markdown blocks, do NOT write any extra leading/trailing text. Ensure the response can be directly parsed via JSON.parse().
-
-Specify valid recommendations custom tailored to this crop/stage combo. For example, Rice tillering needs water levels maintained but not flooded completely, etc.
+Respond in the exact JSON format specified below. Return ONLY pure JSON. Do NOT write markdown codeblocks or extra leading/trailing text.
 
 {
-  "stressLevel": "Low" | "Moderate" | "High" | "Critical",
-  "moistureStatus": "one sentence on water stress condition",
-  "vegetationHealth": "one sentence on crop health from NDVI+NDRE",
-  "irrigationAction": "Immediate" | "Within 48 hours" | "Within 1 week" | "Not Required",
-  "waterAmount": "specific amount in mm or liters per hectare",
-  "irrigationMethod": "Flood" | "Drip" | "Sprinkler" | "Furrow",
-  "fertilizerFlag": true | false,
-  "fertilizerNote": "specific fertilizer advice if needed, else null",
-  "alerts": ["list", "of", "specific", "actionable", "alerts", "insect warnings related to this growth stage and district"],
-  "weeklyForecast": "2-sentence advisory for the next 7 days",
-  "confidence": 85
+  "qualityScore": 92,
+  "illuminationImpact": "Assess how Sun elevation/azimuth angle difference affects shadow direction and crater rim feature correlation.",
+  "viewpointDistortionAssessment": "Assess geometric viewpoint and scale ratio distortions between Chandrayaan-2 and reference frame.",
+  "scaleRatioNotes": "Commentary on scale ratio adaptation and spatial resolution matching.",
+  "recommendation": "Technical recommendation to achieve or maintain sub-pixel accuracy and uniform point distribution.",
+  "confidence": 95
 }`;
 
       const response = await ai.models.generateContent({
@@ -82,8 +87,10 @@ Specify valid recommendations custom tailored to this crop/stage combo. For exam
 
       return res.json(parsed);
     } catch (error: any) {
-      console.error("Gemini Advisory Error:", error);
-      res.status(500).json({ error: error.message || "Failed to generate AI advisory. Check application credentials and try again." });
+      console.error("Gemini Registration Analysis Error:", error);
+      res.status(500).json({
+        error: error.message || "Failed to generate AI registration evaluation. Check credentials."
+      });
     }
   });
 
